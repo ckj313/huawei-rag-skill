@@ -21,7 +21,7 @@ Use offline manuals to derive **config-only** CLI commands for Huawei datacom V8
    - If `status == "missing_device"`: stop command generation; ask user to specify `device` first.
    - If `status == "missing_index"`: stop command generation immediately; ask user for `manual_source_path`.
    - After user provides path, build index by source type:
-     - CHM: `extract_chm.py -> html_to_md.py -> build_index.py`
+     - CHM: `chm_to_index.py` (一条命令完成解包+转换+建索引)
      - HTML dir: `html_to_md.py -> build_index.py`
      - Markdown dir: `build_index.py`
    - Rerun retrieval after indexing.
@@ -97,9 +97,9 @@ For `ne-v8`/`ce-v8`/`ae-v8`/`lsw-v8`, prefer a routing-device style without `sec
 
 ## Quick Reference
 - 检索: `python scripts/search_manual.py --input "$ARGUMENTS" --device <ne-v8|ce-v8|ae-v8|lsw-v8|usg-v8>`
-- CHM 解包: `python scripts/extract_chm.py --input <manual.chm> --out manuals/<device>/html`
+- CHM 一键建索引: `python scripts/chm_to_index.py --input ~/Downloads/HUAWEI_usg.chm --device usg-v8`
 - HTML 转 MD: `python scripts/html_to_md.py --input <html_dir> --out manuals/<device>/md`
-- 构建索引: `python scripts/build_index.py --manual manuals/<device>/md --out data/<device>`
+- 构建索引(从MD): `python scripts/build_index.py --manual manuals/<device>/md --out data/<device>`
 - 校验: `python scripts/validate_cli.py --input <json>`
 - 经验库: `experience/protocols/*.yaml`
 - 索引: `data/<device>/meta.json` + `data/<device>/bm25.pkl`

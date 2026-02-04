@@ -54,11 +54,7 @@ def _missing_index_payload(raw_input: str, intent: dict, device: str, index_dir:
                 f"python scripts/html_to_md.py --input <html_dir> --out {md_dir} && "
                 f"python scripts/build_index.py --manual {md_dir} --out {index_dir}"
             ),
-            "from_chm": (
-                f"python scripts/extract_chm.py --input <manual.chm> --out {html_dir} && "
-                f"python scripts/html_to_md.py --input {html_dir} --out {md_dir} && "
-                f"python scripts/build_index.py --manual {md_dir} --out {index_dir}"
-            ),
+            "from_chm": f"python scripts/chm_to_index.py --input <manual.chm> --device {device} --index-out {index_dir}",
         },
     }
 
