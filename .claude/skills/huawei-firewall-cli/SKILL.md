@@ -12,7 +12,7 @@ Use offline manuals to derive **config-only** CLI commands for Huawei USG V8. Ev
 1. Parse input to detect protocol/packet using `experience/protocols/*.yaml`.
 2. Run retrieval: `python scripts/search_manual.py --input "$ARGUMENTS"`.
 3. Only generate commands that are supported by retrieved snippets.
-4. If required fields are missing, return `missing_fields` and leave `commands` empty.
+4. For any `placeholder_fields` returned by retrieval, emit placeholders in commands using `<param>` (e.g., `<process_id>`). Do **not** add these to `missing_fields`.
 5. Output JSON that matches `.claude/skills/huawei-firewall-cli/schemas/cli_plan.schema.json`.
 6. Validate: `python scripts/validate_cli.py --input <json>`.
 
@@ -20,6 +20,7 @@ Use offline manuals to derive **config-only** CLI commands for Huawei USG V8. Ev
 - Output **only configuration commands** (no `display`, `ping`, `diagnose`, etc.).
 - Each command must include at least one `refs[]` entry from retrieval hits.
 - Use `assumptions` only when the manual explicitly allows defaults.
+- `missing_fields` is only for truly unknown inputs (e.g., protocol/device/goal ambiguous or no evidence). It must **not** contain placeholder fields.
 
 ## Input Examples
 - “帮我测试一下 ospf”
@@ -35,14 +36,35 @@ Optional:
 Input:
 `/huawei-firewall-cli protocol=ospf goal=hello测试 vrp=V8` 
 
-Output (missing fields example):
+Output (placeholder example):
 ```json
 {
   "protocol": "ospf",
   "device": "usg-v8",
   "assumptions": [],
-  "missing_fields": ["process_id", "area", "interface", "router_id", "test_peer_ip", "test_link_ip"],
-  "commands": []
+  "missing_fields": [],
+  "commands": [
+    {
+      "cmd": "ospf <process_id>",
+      "purpose": "创建 OSPF 进程",
+      "refs": [{"source": "<manual>.md", "section": "<section>", "title": "<title>"}]
+    },
+    {
+      "cmd": "area <area>",
+      "purpose": "进入 OSPF 区域",
+      "refs": [{"source": "<manual>.md", "section": "<section>", "title": "<title>"}]
+    },
+    {
+      "cmd": "interface <interface>",
+      "purpose": "进入接口视图",
+      "refs": [{"source": "<manual>.md", "section": "<section>", "title": "<title>"}]
+    },
+    {
+      "cmd": "ospf timer hello <hello_interval>",
+      "purpose": "设置 Hello 报文间隔",
+      "refs": [{"source": "<manual>.md", "section": "<section>", "title": "<title>"}]
+    }
+  ]
 }
 ```
 
@@ -55,7 +77,7 @@ Output (missing fields example):
 ## Common Mistakes
 - 输出显示/诊断命令
 - 未给出引用依据
-- 缺字段时仍输出配置命令
+- 未使用 `<param>` 占位符而直接臆造参数
 - 使用非 USG V8 语法
 
 ## Rationalization Table

@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from src.html_to_md import html_to_markdown
+from src.html_to_md import html_to_markdown, decode_html_bytes
 
 
 def main() -> int:
@@ -26,7 +26,8 @@ def main() -> int:
         rel = html_path.relative_to(input_root)
         out_path = out_root / rel.with_suffix(".md")
         out_path.parent.mkdir(parents=True, exist_ok=True)
-        html = html_path.read_text(encoding="utf-8", errors="ignore")
+        raw = html_path.read_bytes()
+        html = decode_html_bytes(raw)
         md = html_to_markdown(html)
         out_path.write_text(md, encoding="utf-8")
 

@@ -32,7 +32,7 @@
 - 期望行为:
   - 先检索 `scripts/search_manual.py` 获取 OSPF 片段
   - 仅在证据支持时输出配置命令，并为每条命令附 `refs`
-  - 若缺少接口/area/process-id/router-id/测试仪参数，输出 `missing_fields`，commands 为空
+  - 对 `placeholder_fields` 使用 `<param>` 占位符，不再输出 `missing_fields`
 
 ### 场景 B
 - 期望行为:
@@ -43,4 +43,5 @@
 ## 新增合理化与反制
 - 合理化: “hello 报文测试需要抓包/显示命令”
   - 反制: 明确禁止 display/diagnose/ping，且只允许配置命令
-
+- 合理化: “没有输入参数就必须停下来”
+  - 反制: 对 `placeholder_fields` 使用 `<param>` 占位符继续输出配置

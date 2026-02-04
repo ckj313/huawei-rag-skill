@@ -1,4 +1,4 @@
-from src.html_to_md import html_to_markdown
+from src.html_to_md import html_to_markdown, decode_html_bytes
 
 
 def test_html_to_markdown_basic():
@@ -13,3 +13,17 @@ def test_html_to_markdown_basic():
     assert "# OSPF 基本配置" in md
     assert "配置 OSPF 进程" in md
     assert "- 进入系统视图" in md
+
+
+def test_decode_html_bytes_gb2312():
+    html = """
+    <html><head>
+    <meta http-equiv="Content-Type" content="text/html; charset=gb2312">
+    </head><body>
+      <h1>OSPF 基本配置</h1>
+      <p>配置 OSPF 进程。</p>
+    </body></html>
+    """
+    data = html.encode("gb2312")
+    decoded = decode_html_bytes(data)
+    assert "OSPF 基本配置" in decoded

@@ -1,6 +1,33 @@
 from __future__ import annotations
 
+import re
+
 from bs4 import BeautifulSoup
+
+_META_CHARSET_RE = re.compile(r"charset=([A-Za-z0-9_-]+)", re.IGNORECASE)
+
+
+def _detect_meta_charset(data: bytes) -> str | None:
+    head = data[:4096].decode("latin-1", errors="ignore")
+    match = _META_CHARSET_RE.search(head)
+    if not match:
+        return None
+    return match.group(1).strip().lower()
+
+
+def decode_html_bytes(data: bytes) -> str:
+    charset = _detect_meta_charset(data)
+    candidates = []
+    if charset:
+        candidates.append(charset)
+    candidates.extend(["utf-8", "gb18030", "gbk", "gb2312"])
+
+    for enc in candidates:
+        try:
+            return data.decode(enc)
+        except (LookupError, UnicodeDecodeError):
+            continue
+    return data.decode("latin-1", errors="replace")
 
 
 def _text(node) -> str:

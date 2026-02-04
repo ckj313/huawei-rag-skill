@@ -50,12 +50,17 @@ def detect_intent(text: str, profiles: dict[str, dict[str, Any]]) -> dict[str, A
                 break
 
     required_fields = []
+    placeholder_fields = []
     if selected_profile:
         required_fields = list(selected_profile.get("required_fields", []))
+        placeholder_fields = list(
+            selected_profile.get("placeholder_fields", required_fields)
+        )
 
     return {
         "protocol": selected_protocol,
         "packet": packet,
         "required_fields": required_fields,
+        "placeholder_fields": placeholder_fields,
         "profile": selected_profile,
     }

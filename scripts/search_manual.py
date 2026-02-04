@@ -87,6 +87,7 @@ def main() -> int:
         "protocol": intent.get("protocol"),
         "packet": intent.get("packet"),
         "required_fields": intent.get("required_fields", []),
+        "placeholder_fields": intent.get("placeholder_fields", []),
         "hits": hits,
     }
 

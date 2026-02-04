@@ -8,7 +8,7 @@ packet_types:
     aliases:
       - hello
       - hello 报文
-required_fields:
+placeholder_fields:
   - process_id
   - area
   - interface

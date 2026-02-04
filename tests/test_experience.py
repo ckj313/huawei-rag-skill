@@ -8,4 +8,4 @@ def test_detect_intent_ospf_hello():
     intent = detect_intent("帮我测试一下ospf的hello报文", profiles)
     assert intent["protocol"] == "ospf"
     assert intent["packet"] == "hello"
-    assert "process_id" in intent["required_fields"]
+    assert "process_id" in intent["placeholder_fields"]
