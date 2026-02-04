@@ -1,0 +1,10 @@
+# 禁止非配置或高危命令（正则）
+^\s*display\b
+^\s*diagnose\b
+^\s*ping\b
+^\s*tracert\b
+^\s*reboot\b
+^\s*reset\b
+^\s*format\b
+^\s*delete\b
+^\s*shutdown\b

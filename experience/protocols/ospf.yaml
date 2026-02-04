@@ -1,0 +1,24 @@
+protocol: ospf
+aliases:
+  - ospf
+  - ospf hello
+  - ospf的hello报文
+packet_types:
+  hello:
+    aliases:
+      - hello
+      - hello 报文
+required_fields:
+  - process_id
+  - area
+  - interface
+  - router_id
+  - test_peer_ip
+  - test_link_ip
+search_queries:
+  - OSPF 基本配置
+  - OSPF 进程配置
+  - OSPF 接口配置
+  - OSPF Hello 报文
+notes:
+  - 输出只含配置命令，不含 display/ping

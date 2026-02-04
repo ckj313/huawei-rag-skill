@@ -1,0 +1,17 @@
+protocol: ospf
+aliases:
+  - ospf
+  - ospf hello
+  - ospf的hello报文
+packet_types:
+  hello:
+    aliases:
+      - hello
+      - hello 报文
+required_fields:
+  - process_id
+  - area
+  - interface
+search_queries:
+  - OSPF 基本配置
+  - OSPF 接口配置

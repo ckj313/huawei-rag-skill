@@ -1,0 +1,4 @@
+interface:
+  display_name: "Huawei Firewall CLI"
+  short_description: "从手册检索证据并输出 USG V8 可下发配置命令"
+  default_prompt: "基于检索证据输出可下发配置命令 JSON。"
