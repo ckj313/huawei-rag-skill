@@ -40,7 +40,9 @@ Use offline manuals to derive **config-only** CLI commands for Huawei V8 devices
 - “帮我测试一下 ospf”
 - “帮我测试一下 ospf 的 hello 报文”
 - “我需要测试一下 ospf 协议的 hello 报文，给我一下 usg 设备配置 ospf 的命令行”
+- “我需要测试一下 ospf 协议，给我一下 usg 设备配置 ospf 的命令行”
 - “protocol=ospf packet=hello device=ne-v8 vrp=V8”
+- “protocol=ospf device=usg-v8 vrp=V8”
 - “protocol=ospf packet=hello device=usg-v8 vrp=V8”
 
 ## Output Format (JSON)
