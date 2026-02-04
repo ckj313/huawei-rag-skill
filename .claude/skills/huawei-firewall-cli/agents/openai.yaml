@@ -1,4 +1,4 @@
 interface:
   display_name: "Huawei V8 CLI"
   short_description: "从手册检索证据并输出 NE/USG V8 可下发配置命令"
-  default_prompt: "禁止修改 experience 库；先检索，若缺索引先向用户要手册并建库，再基于证据和 device 参数输出配置 JSON。"
+  default_prompt: "禁止修改 experience 库；先检索，缺索引先向用户要手册并建库；通过校验后仅输出一套 CLI 配置块（不要多方案/不要JSON）。"
