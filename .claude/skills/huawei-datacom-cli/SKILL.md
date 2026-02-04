@@ -14,14 +14,15 @@ Use offline manuals to derive **config-only** CLI commands for Huawei datacom de
 - If protocol/packet details are missing from `experience/`, continue with raw user query + manual retrieval, or ask the user for clarification.
 - When index/manual is missing, ask user for manual path and build index first; do not "fix" by editing `experience/`.
 
-## Skill-local Scripts
-- This skill bundles local launcher scripts in `scripts/` under this skill directory.
-- Prefer these paths first (for example `python scripts/chm_to_index.py ...`) to avoid searching in workspace root.
-- The launchers delegate to repository root `scripts/` implementations.
+## Script Path Rule
+- Always resolve repo root first:
+  - `REPO_ROOT="$(git rev-parse --show-toplevel)"`
+- Then run scripts via absolute repo path, for example:
+  - `python "$REPO_ROOT/scripts/search_manual.py" ...`
 
 ## Workflow
 1. Parse input to detect protocol/packet using `experience/protocols/*.yaml`.
-2. Parse `device` from input arguments and run retrieval: `python scripts/search_manual.py --input "$ARGUMENTS" --device <device>`.
+2. Parse `device` from input arguments and run retrieval: `python "$REPO_ROOT/scripts/search_manual.py" --input "$ARGUMENTS" --device <device>`.
 3. Parse retrieval JSON:
    - If command exits non-zero OR `must_stop == true`: stop command generation immediately.
    - If `status == "missing_device"`: ask user to specify `device` first.
@@ -34,7 +35,7 @@ Use offline manuals to derive **config-only** CLI commands for Huawei datacom de
 4. Only generate commands when retrieval returns `status == "ok"` and `can_generate_config == true`.
 5. For any `placeholder_fields` returned by retrieval in `status == "ok"`, emit placeholders in commands using `<param>` (e.g., `<process_id>`). Do **not** add these to `missing_fields`.
 6. Build an internal JSON plan that matches `.claude/skills/huawei-datacom-cli/schemas/cli_plan.schema.json`.
-7. Validate internal JSON: `python scripts/validate_cli.py --input <json> --delete-input`.
+7. Validate internal JSON: `python "$REPO_ROOT/scripts/validate_cli.py" --input <json> --delete-input`.
 8. If validation is `ok`, render user-facing output as **one single CLI block** (not multiple方案, not JSON dump).
 
 ## Output Rules
@@ -55,7 +56,7 @@ Use offline manuals to derive **config-only** CLI commands for Huawei datacom de
   - `未检测到设备类型，请先提供 device（ne/ce/ae/lsw/usg）。`
 - Missing index reply (only ask path + command, no config):
   - `当前未找到 <device> 的RAG索引，请提供手册CHM路径（或HTML/Markdown目录）以先建库。`
-  - `CHM一键建库命令：python scripts/chm_to_index.py --input <manual.chm> --device <device>`
+  - `CHM一键建库命令：python "$REPO_ROOT/scripts/chm_to_index.py" --input <manual.chm> --device <device>`
 
 ## Input Examples
 - “帮我测试一下 ospf”
@@ -111,11 +112,11 @@ quit
 For `ne`/`ce`/`ae`/`lsw`, prefer a routing-device style without `security-policy` unless retrieval evidence explicitly requires it.
 
 ## Quick Reference
-- 检索: `python scripts/search_manual.py --input "$ARGUMENTS" --device <ne|ce|ae|lsw|usg>`
-- CHM 一键建索引: `python scripts/chm_to_index.py --input ~/Downloads/HUAWEI_usg.chm --device usg`
-- HTML 转 MD: `python scripts/html_to_md.py --input <html_dir> --out manuals/<device>/md`
-- 构建索引(从MD): `python scripts/build_index.py --manual manuals/<device>/md --out data/<device>`
-- 校验并自动清理临时JSON: `python scripts/validate_cli.py --input <json> --delete-input`
+- 检索: `python "$REPO_ROOT/scripts/search_manual.py" --input "$ARGUMENTS" --device <ne|ce|ae|lsw|usg>`
+- CHM 一键建索引: `python "$REPO_ROOT/scripts/chm_to_index.py" --input ~/Downloads/HUAWEI_usg.chm --device usg`
+- HTML 转 MD: `python "$REPO_ROOT/scripts/html_to_md.py" --input <html_dir> --out manuals/<device>/md`
+- 构建索引(从MD): `python "$REPO_ROOT/scripts/build_index.py" --manual manuals/<device>/md --out data/<device>`
+- 校验并自动清理临时JSON: `python "$REPO_ROOT/scripts/validate_cli.py" --input <json> --delete-input`
 - 经验库: `experience/protocols/*.yaml`
 - 索引: `data/<device>/meta.json` + `data/<device>/bm25.pkl`
 
