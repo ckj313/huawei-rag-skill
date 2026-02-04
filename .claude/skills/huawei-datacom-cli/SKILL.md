@@ -14,6 +14,11 @@ Use offline manuals to derive **config-only** CLI commands for Huawei datacom de
 - If protocol/packet details are missing from `experience/`, continue with raw user query + manual retrieval, or ask the user for clarification.
 - When index/manual is missing, ask user for manual path and build index first; do not "fix" by editing `experience/`.
 
+## Skill-local Scripts
+- This skill bundles local launcher scripts in `scripts/` under this skill directory.
+- Prefer these paths first (for example `python scripts/chm_to_index.py ...`) to avoid searching in workspace root.
+- The launchers delegate to repository root `scripts/` implementations.
+
 ## Workflow
 1. Parse input to detect protocol/packet using `experience/protocols/*.yaml`.
 2. Parse `device` from input arguments and run retrieval: `python scripts/search_manual.py --input "$ARGUMENTS" --device <device>`.
