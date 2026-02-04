@@ -8,6 +8,12 @@ description: Use when asked to output Huawei V8 device CLI configuration (NE/USG
 ## Overview
 Use offline manuals to derive **config-only** CLI commands for Huawei V8 devices (for example `ne-v8`, `usg-v8`). Every command must be grounded in retrieved manual evidence.
 
+## Hard Constraints
+- Never create, edit, or auto-complete files under `experience/`.
+- Treat `experience/` as user-maintained knowledge only.
+- If protocol/packet details are missing from `experience/`, continue with raw user query + manual retrieval, or ask the user for clarification.
+- When index/manual is missing, ask user for manual path and build index first; do not "fix" by editing `experience/`.
+
 ## Workflow
 1. Parse input to detect protocol/packet using `experience/protocols/*.yaml`.
 2. Parse `device` from input arguments and run retrieval: `python scripts/search_manual.py --input "$ARGUMENTS" --device <device>`.
@@ -91,6 +97,7 @@ Output (placeholder example):
 - 未给出引用依据
 - 未使用 `<param>` 占位符而直接臆造参数
 - 未传入 `device` 导致设备语法不匹配
+- 自动修改 `experience/` 试图“补齐协议知识”
 
 ## Rationalization Table
 | Excuse | Reality |

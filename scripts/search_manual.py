@@ -32,6 +32,7 @@ def _missing_index_payload(raw_input: str, intent: dict, device: str, index_dir:
     html_dir = manual_root / "html"
     return {
         "status": "missing_index",
+        "experience_policy": "user_managed_only",
         "error": f"Index not found in {index_dir}",
         "input": raw_input,
         "protocol": intent.get("protocol"),
@@ -118,6 +119,7 @@ def main() -> int:
 
     output = {
         "status": "ok",
+        "experience_policy": "user_managed_only",
         "input": raw_input,
         "protocol": intent.get("protocol"),
         "packet": intent.get("packet"),
