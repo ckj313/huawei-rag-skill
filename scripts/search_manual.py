@@ -33,13 +33,17 @@ def _missing_index_payload(raw_input: str, intent: dict, device: str, index_dir:
     return {
         "status": "missing_index",
         "experience_policy": "user_managed_only",
+        "can_generate_config": False,
+        "next_action": "ask_user_for_manual_source_path",
+        "message": "索引缺失，先向用户索要手册路径并完成建库，禁止直接生成配置命令。",
         "error": f"Index not found in {index_dir}",
         "input": raw_input,
         "protocol": intent.get("protocol"),
         "packet": intent.get("packet"),
         "device": device,
         "required_fields": intent.get("required_fields", []),
-        "placeholder_fields": intent.get("placeholder_fields", []),
+        "placeholder_fields": [],
+        "deferred_placeholder_fields": intent.get("placeholder_fields", []),
         "hits": [],
         "needs_user_input": [
             "manual_source_path: 手册路径（CHM 文件、HTML 目录或 Markdown 目录）",
@@ -120,6 +124,7 @@ def main() -> int:
     output = {
         "status": "ok",
         "experience_policy": "user_managed_only",
+        "can_generate_config": True,
         "input": raw_input,
         "protocol": intent.get("protocol"),
         "packet": intent.get("packet"),
