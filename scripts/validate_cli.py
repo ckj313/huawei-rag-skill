@@ -16,6 +16,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Validate CLI plan JSON")
     parser.add_argument("--input", help="JSON file path (default: stdin)")
     parser.add_argument(
+        "--delete-input",
+        action="store_true",
+        help="Delete --input file after validation (success or failure).",
+    )
+    parser.add_argument(
         "--schema",
         default=".claude/skills/huawei-datacom-cli/schemas/cli_plan.schema.json",
     )
@@ -25,25 +30,34 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    if args.input:
-        data = json.loads(Path(args.input).read_text(encoding="utf-8"))
-    else:
-        data = json.loads(sys.stdin.read())
+    input_path: Path | None = None
+    try:
+        if args.input:
+            input_path = Path(args.input).expanduser()
+            data = json.loads(input_path.read_text(encoding="utf-8"))
+        else:
+            data = json.loads(sys.stdin.read())
 
-    def _resolve(path_str: str) -> Path:
-        path = Path(path_str).expanduser()
-        return path if path.is_absolute() else ROOT / path
+        def _resolve(path_str: str) -> Path:
+            path = Path(path_str).expanduser()
+            return path if path.is_absolute() else ROOT / path
 
-    errors = validate_plan(
-        data,
-        _resolve(args.schema),
-        _resolve(args.rules),
-    )
-    if errors:
-        print(json.dumps({"status": "invalid", "errors": errors}, ensure_ascii=False, indent=2))
-        return 1
-    print(json.dumps({"status": "ok"}, ensure_ascii=False))
-    return 0
+        errors = validate_plan(
+            data,
+            _resolve(args.schema),
+            _resolve(args.rules),
+        )
+        if errors:
+            print(json.dumps({"status": "invalid", "errors": errors}, ensure_ascii=False, indent=2))
+            return 1
+        print(json.dumps({"status": "ok"}, ensure_ascii=False))
+        return 0
+    finally:
+        if args.delete_input and input_path is not None:
+            try:
+                input_path.unlink()
+            except FileNotFoundError:
+                pass
 
 
 if __name__ == "__main__":

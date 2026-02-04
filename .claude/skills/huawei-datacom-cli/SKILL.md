@@ -29,7 +29,7 @@ Use offline manuals to derive **config-only** CLI commands for Huawei datacom de
 4. Only generate commands when retrieval returns `status == "ok"` and `can_generate_config == true`.
 5. For any `placeholder_fields` returned by retrieval in `status == "ok"`, emit placeholders in commands using `<param>` (e.g., `<process_id>`). Do **not** add these to `missing_fields`.
 6. Build an internal JSON plan that matches `.claude/skills/huawei-datacom-cli/schemas/cli_plan.schema.json`.
-7. Validate internal JSON: `python scripts/validate_cli.py --input <json>`.
+7. Validate internal JSON: `python scripts/validate_cli.py --input <json> --delete-input`.
 8. If validation is `ok`, render user-facing output as **one single CLI block** (not multiple方案, not JSON dump).
 
 ## Output Rules
@@ -43,6 +43,7 @@ Use offline manuals to derive **config-only** CLI commands for Huawei datacom de
 - In `missing_index`/`missing_device` cases: do not create any JSON plan file, do not run `validate_cli.py`.
 - For one request, output exactly one final configuration set. Never output multiple基础配置/候选方案.
 - Do not expose internal JSON unless user explicitly asks for JSON.
+- If a temporary JSON file is created for validation, it must be deleted immediately after validation.
 
 ## Stop-First Reply Templates
 - Missing device reply (only ask question, no config):
@@ -109,7 +110,7 @@ For `ne`/`ce`/`ae`/`lsw`, prefer a routing-device style without `security-policy
 - CHM 一键建索引: `python scripts/chm_to_index.py --input ~/Downloads/HUAWEI_usg.chm --device usg`
 - HTML 转 MD: `python scripts/html_to_md.py --input <html_dir> --out manuals/<device>/md`
 - 构建索引(从MD): `python scripts/build_index.py --manual manuals/<device>/md --out data/<device>`
-- 校验: `python scripts/validate_cli.py --input <json>`
+- 校验并自动清理临时JSON: `python scripts/validate_cli.py --input <json> --delete-input`
 - 经验库: `experience/protocols/*.yaml`
 - 索引: `data/<device>/meta.json` + `data/<device>/bm25.pkl`
 

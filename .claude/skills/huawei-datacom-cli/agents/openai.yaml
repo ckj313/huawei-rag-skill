@@ -1,4 +1,4 @@
 interface:
   display_name: "Huawei Datacom CLI"
   short_description: "从手册检索证据并输出 NE/CE/AE/LSW/USG 可下发配置命令"
-  default_prompt: "禁止修改experience库；覆盖华为数通设备(NE/CE/AE/LSW/USG)；缺device或缺索引时立即停止并向用户要信息（不生成JSON计划文件）；通过校验后仅输出一套CLI配置块。"
+  default_prompt: "禁止修改experience库；覆盖华为数通设备(NE/CE/AE/LSW/USG)；缺device或缺索引时立即停止并向用户要信息（不生成JSON计划文件）；若临时JSON用于校验，校验后立即删除；最终仅输出一套CLI配置块。"
