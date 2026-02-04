@@ -63,11 +63,32 @@ def _missing_index_payload(raw_input: str, intent: dict, device: str, index_dir:
     }
 
 
+def _missing_device_payload(raw_input: str, intent: dict) -> dict:
+    return {
+        "status": "missing_device",
+        "experience_policy": "user_managed_only",
+        "can_generate_config": False,
+        "next_action": "ask_user_for_device",
+        "message": "未提供设备类型，先让用户指定 device（ne-v8/ce-v8/ae-v8/lsw-v8/usg-v8）后再检索。",
+        "input": raw_input,
+        "protocol": intent.get("protocol"),
+        "packet": intent.get("packet"),
+        "device": None,
+        "required_fields": intent.get("required_fields", []),
+        "placeholder_fields": [],
+        "deferred_placeholder_fields": intent.get("placeholder_fields", []),
+        "hits": [],
+        "needs_user_input": [
+            "device: ne-v8 | ce-v8 | ae-v8 | lsw-v8 | usg-v8",
+        ],
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Search manuals using BM25")
     parser.add_argument("--input", help="Raw user input")
     parser.add_argument("--query", help="Search query (optional override)")
-    parser.add_argument("--device", default="usg-v8")
+    parser.add_argument("--device")
     parser.add_argument("--index", help="Index directory override")
     parser.add_argument("--topk", type=int, default=5)
     args = parser.parse_args()
@@ -78,6 +99,11 @@ def main() -> int:
 
     profiles = load_protocol_profiles(ROOT / "experience/protocols")
     intent = detect_intent(raw_input, profiles)
+
+    if not args.device:
+        output = _missing_device_payload(raw_input, intent)
+        print(json.dumps(output, ensure_ascii=False, indent=2))
+        return 0
 
     queries = []
     if args.query:

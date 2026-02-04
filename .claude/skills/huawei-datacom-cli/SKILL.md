@@ -1,12 +1,12 @@
 ---
-name: huawei-firewall-cli
-description: Use when asked to output Huawei V8 device CLI configuration (NE/USG) based on manuals, a protocol name, or a protocol packet (e.g., OSPF Hello), and the response must be evidence-backed and offline-only.
+name: huawei-datacom-cli
+description: Use when asked to output Huawei datacom V8 device CLI configuration (NE/CE/AE/LSW/USG) based on manuals, a protocol name, or a protocol packet (e.g., OSPF Hello), and the response must be evidence-backed and offline-only.
 ---
 
-# Huawei V8 Device CLI (RAG)
+# Huawei Datacom Device CLI (RAG)
 
 ## Overview
-Use offline manuals to derive **config-only** CLI commands for Huawei V8 devices (for example `ne-v8`, `usg-v8`). Every command must be grounded in retrieved manual evidence.
+Use offline manuals to derive **config-only** CLI commands for Huawei datacom V8 devices (for example `ne-v8`, `ce-v8`, `ae-v8`, `lsw-v8`, `usg-v8`). Every command must be grounded in retrieved manual evidence.
 
 ## Hard Constraints
 - Never create, edit, or auto-complete files under `experience/`.
@@ -18,6 +18,7 @@ Use offline manuals to derive **config-only** CLI commands for Huawei V8 devices
 1. Parse input to detect protocol/packet using `experience/protocols/*.yaml`.
 2. Parse `device` from input arguments and run retrieval: `python scripts/search_manual.py --input "$ARGUMENTS" --device <device>`.
 3. Parse retrieval JSON:
+   - If `status == "missing_device"`: stop command generation; ask user to specify `device` first.
    - If `status == "missing_index"`: stop command generation immediately; ask user for `manual_source_path`.
    - After user provides path, build index by source type:
      - CHM: `extract_chm.py -> html_to_md.py -> build_index.py`
@@ -26,7 +27,7 @@ Use offline manuals to derive **config-only** CLI commands for Huawei V8 devices
    - Rerun retrieval after indexing.
 4. Only generate commands when retrieval returns `status == "ok"` and `can_generate_config == true`.
 5. For any `placeholder_fields` returned by retrieval in `status == "ok"`, emit placeholders in commands using `<param>` (e.g., `<process_id>`). Do **not** add these to `missing_fields`.
-6. Build an internal JSON plan that matches `.claude/skills/huawei-firewall-cli/schemas/cli_plan.schema.json`.
+6. Build an internal JSON plan that matches `.claude/skills/huawei-datacom-cli/schemas/cli_plan.schema.json`.
 7. Validate internal JSON: `python scripts/validate_cli.py --input <json>`.
 8. If validation is `ok`, render user-facing output as **one single CLI block** (not multiple方案, not JSON dump).
 
@@ -37,16 +38,19 @@ Use offline manuals to derive **config-only** CLI commands for Huawei V8 devices
 - `missing_fields` is only for truly unknown inputs (e.g., protocol/device/goal ambiguous or no evidence). It must **not** contain placeholder fields.
 - If retrieval returns `status == "missing_index"`, do not output any configuration example; ask user for manual path first and build index before generating commands.
 - If retrieval returns `status == "missing_index"`, `placeholder_fields` is not actionable and must not be used to synthesize commands.
+- If retrieval returns `status == "missing_device"`, do not output configuration; request `device` first.
 - For one request, output exactly one final configuration set. Never output multiple基础配置/候选方案.
 - Do not expose internal JSON unless user explicitly asks for JSON.
 
 ## Input Examples
 - “帮我测试一下 ospf”
 - “帮我测试一下 ospf 的 hello 报文”
-- “我需要测试一下 ospf 协议的 hello 报文，给我一下 usg 设备配置 ospf 的命令行”
 - “我需要测试一下 ospf 协议，给我一下 usg 设备配置 ospf 的命令行”
+- “我需要测试一下 ospf 协议，给我一下 ne 设备配置 ospf 的命令行”
 - “protocol=ospf packet=hello device=ne-v8 vrp=V8”
-- “protocol=ospf device=usg-v8 vrp=V8”
+- “protocol=ospf device=ce-v8 vrp=V8”
+- “protocol=ospf packet=hello device=ae-v8 vrp=V8”
+- “protocol=ospf device=lsw-v8 vrp=V8”
 - “protocol=ospf packet=hello device=usg-v8 vrp=V8”
 
 ## Output Format (JSON)
@@ -58,13 +62,13 @@ Optional:
 ## User-Facing Output Format
 After internal JSON validation succeeds, output in this shape:
 
-- `已按 huawei-firewall-cli 的规则生成并校验（validate_cli.py 返回 ok）。`
+- `已按 huawei-datacom-cli 的规则生成并校验（validate_cli.py 返回 ok）。`
 - `下面是 OSPF 配置命令（占位符版）：`
 ```cli
 <single config block>
 ```
 
-If `device=usg-v8` and `protocol=ospf`, prefer this canonical single-block style:
+If `device=usg-v8` and `protocol=ospf`, prefer this canonical style:
 ```cli
 system-view
 
@@ -89,44 +93,10 @@ security-policy
 quit
 ```
 
-## Example
-Input:
-`/huawei-firewall-cli protocol=ospf goal=hello测试 device=ne-v8 vrp=V8` 
-
-Output (placeholder example):
-```json
-{
-  "protocol": "ospf",
-  "device": "ne-v8",
-  "assumptions": [],
-  "missing_fields": [],
-  "commands": [
-    {
-      "cmd": "ospf <process_id>",
-      "purpose": "创建 OSPF 进程",
-      "refs": [{"source": "<manual>.md", "section": "<section>", "title": "<title>"}]
-    },
-    {
-      "cmd": "area <area>",
-      "purpose": "进入 OSPF 区域",
-      "refs": [{"source": "<manual>.md", "section": "<section>", "title": "<title>"}]
-    },
-    {
-      "cmd": "interface <interface>",
-      "purpose": "进入接口视图",
-      "refs": [{"source": "<manual>.md", "section": "<section>", "title": "<title>"}]
-    },
-    {
-      "cmd": "ospf timer hello <hello_interval>",
-      "purpose": "设置 Hello 报文间隔",
-      "refs": [{"source": "<manual>.md", "section": "<section>", "title": "<title>"}]
-    }
-  ]
-}
-```
+For `ne-v8`/`ce-v8`/`ae-v8`/`lsw-v8`, prefer a routing-device style without `security-policy` unless retrieval evidence explicitly requires it.
 
 ## Quick Reference
-- 检索: `python scripts/search_manual.py --input "$ARGUMENTS" --device <ne-v8|usg-v8>`
+- 检索: `python scripts/search_manual.py --input "$ARGUMENTS" --device <ne-v8|ce-v8|ae-v8|lsw-v8|usg-v8>`
 - CHM 解包: `python scripts/extract_chm.py --input <manual.chm> --out manuals/<device>/html`
 - HTML 转 MD: `python scripts/html_to_md.py --input <html_dir> --out manuals/<device>/md`
 - 构建索引: `python scripts/build_index.py --manual manuals/<device>/md --out data/<device>`

@@ -17,11 +17,11 @@ def main() -> int:
     parser.add_argument("--input", help="JSON file path (default: stdin)")
     parser.add_argument(
         "--schema",
-        default=".claude/skills/huawei-firewall-cli/schemas/cli_plan.schema.json",
+        default=".claude/skills/huawei-datacom-cli/schemas/cli_plan.schema.json",
     )
     parser.add_argument(
         "--rules",
-        default=".claude/skills/huawei-firewall-cli/rules/dangerous_commands.txt",
+        default=".claude/skills/huawei-datacom-cli/rules/dangerous_commands.txt",
     )
     args = parser.parse_args()
 

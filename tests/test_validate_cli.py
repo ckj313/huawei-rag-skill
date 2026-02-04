@@ -4,8 +4,8 @@ from src.validate_cli import validate_plan
 
 
 def test_validate_cli_missing_refs_fails():
-    schema_path = Path(__file__).parent.parent / ".claude" / "skills" / "huawei-firewall-cli" / "schemas" / "cli_plan.schema.json"
-    rules_path = Path(__file__).parent.parent / ".claude" / "skills" / "huawei-firewall-cli" / "rules" / "dangerous_commands.txt"
+    schema_path = Path(__file__).parent.parent / ".claude" / "skills" / "huawei-datacom-cli" / "schemas" / "cli_plan.schema.json"
+    rules_path = Path(__file__).parent.parent / ".claude" / "skills" / "huawei-datacom-cli" / "rules" / "dangerous_commands.txt"
     plan = {
         "protocol": "ospf",
         "device": "usg-v8",
