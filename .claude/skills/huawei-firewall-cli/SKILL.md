@@ -1,16 +1,16 @@
 ---
 name: huawei-firewall-cli
-description: Use when asked to output Huawei firewall (USG) V8 CLI configuration based on manuals, a protocol name, or a protocol packet (e.g., OSPF Hello), and the response must be evidence-backed and offline-only.
+description: Use when asked to output Huawei V8 device CLI configuration (NE/USG) based on manuals, a protocol name, or a protocol packet (e.g., OSPF Hello), and the response must be evidence-backed and offline-only.
 ---
 
-# Huawei Firewall CLI (RAG)
+# Huawei V8 Device CLI (RAG)
 
 ## Overview
-Use offline manuals to derive **config-only** CLI commands for Huawei USG V8. Every command must be grounded in retrieved manual evidence.
+Use offline manuals to derive **config-only** CLI commands for Huawei V8 devices (for example `ne-v8`, `usg-v8`). Every command must be grounded in retrieved manual evidence.
 
 ## Workflow
 1. Parse input to detect protocol/packet using `experience/protocols/*.yaml`.
-2. Run retrieval: `python scripts/search_manual.py --input "$ARGUMENTS"`.
+2. Parse `device` from input arguments and run retrieval: `python scripts/search_manual.py --input "$ARGUMENTS" --device <device>`.
 3. Only generate commands that are supported by retrieved snippets.
 4. For any `placeholder_fields` returned by retrieval, emit placeholders in commands using `<param>` (e.g., `<process_id>`). Do **not** add these to `missing_fields`.
 5. Output JSON that matches `.claude/skills/huawei-firewall-cli/schemas/cli_plan.schema.json`.
@@ -25,6 +25,7 @@ Use offline manuals to derive **config-only** CLI commands for Huawei USG V8. Ev
 ## Input Examples
 - “帮我测试一下 ospf”
 - “帮我测试一下 ospf 的 hello 报文”
+- “protocol=ospf packet=hello device=ne-v8 vrp=V8”
 
 ## Output Format (JSON)
 Required fields:
@@ -34,13 +35,13 @@ Optional:
 
 ## Example
 Input:
-`/huawei-firewall-cli protocol=ospf goal=hello测试 vrp=V8` 
+`/huawei-firewall-cli protocol=ospf goal=hello测试 device=ne-v8 vrp=V8` 
 
 Output (placeholder example):
 ```json
 {
   "protocol": "ospf",
-  "device": "usg-v8",
+  "device": "ne-v8",
   "assumptions": [],
   "missing_fields": [],
   "commands": [
@@ -69,7 +70,7 @@ Output (placeholder example):
 ```
 
 ## Quick Reference
-- 检索: `python scripts/search_manual.py --input "$ARGUMENTS"`
+- 检索: `python scripts/search_manual.py --input "$ARGUMENTS" --device <ne-v8|usg-v8>`
 - 校验: `python scripts/validate_cli.py --input <json>`
 - 经验库: `experience/protocols/*.yaml`
 - 索引: `data/<device>/meta.json` + `data/<device>/bm25.pkl`
@@ -78,7 +79,7 @@ Output (placeholder example):
 - 输出显示/诊断命令
 - 未给出引用依据
 - 未使用 `<param>` 占位符而直接臆造参数
-- 使用非 USG V8 语法
+- 未传入 `device` 导致设备语法不匹配
 
 ## Rationalization Table
 | Excuse | Reality |

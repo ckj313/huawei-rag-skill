@@ -86,6 +86,7 @@ def main() -> int:
         "input": raw_input,
         "protocol": intent.get("protocol"),
         "packet": intent.get("packet"),
+        "device": args.device,
         "required_fields": intent.get("required_fields", []),
         "placeholder_fields": intent.get("placeholder_fields", []),
         "hits": hits,
