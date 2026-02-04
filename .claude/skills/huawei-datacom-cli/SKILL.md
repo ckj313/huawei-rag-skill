@@ -1,12 +1,12 @@
 ---
 name: huawei-datacom-cli
-description: Use when asked to output Huawei datacom V8 device CLI configuration (NE/CE/AE/LSW/USG) based on manuals, a protocol name, or a protocol packet (e.g., OSPF Hello), and the response must be evidence-backed and offline-only.
+description: Use when asked to output Huawei datacom device CLI configuration (NE/CE/AE/LSW/USG) based on manuals, a protocol name, or a protocol packet (e.g., OSPF Hello), and the response must be evidence-backed and offline-only.
 ---
 
 # Huawei Datacom Device CLI (RAG)
 
 ## Overview
-Use offline manuals to derive **config-only** CLI commands for Huawei datacom V8 devices (for example `ne-v8`, `ce-v8`, `ae-v8`, `lsw-v8`, `usg-v8`). Every command must be grounded in retrieved manual evidence.
+Use offline manuals to derive **config-only** CLI commands for Huawei datacom devices (for example `ne`, `ce`, `ae`, `lsw`, `usg`). Every command must be grounded in retrieved manual evidence.
 
 ## Hard Constraints
 - Never create, edit, or auto-complete files under `experience/`.
@@ -18,8 +18,9 @@ Use offline manuals to derive **config-only** CLI commands for Huawei datacom V8
 1. Parse input to detect protocol/packet using `experience/protocols/*.yaml`.
 2. Parse `device` from input arguments and run retrieval: `python scripts/search_manual.py --input "$ARGUMENTS" --device <device>`.
 3. Parse retrieval JSON:
-   - If `status == "missing_device"`: stop command generation; ask user to specify `device` first.
-   - If `status == "missing_index"`: stop command generation immediately; ask user for `manual_source_path`.
+   - If command exits non-zero OR `must_stop == true`: stop command generation immediately.
+   - If `status == "missing_device"`: ask user to specify `device` first.
+   - If `status == "missing_index"`: ask user for `manual_source_path` first.
    - After user provides path, build index by source type:
      - CHM: `chm_to_index.py` (一条命令完成解包+转换+建索引)
      - HTML dir: `html_to_md.py -> build_index.py`
@@ -39,19 +40,27 @@ Use offline manuals to derive **config-only** CLI commands for Huawei datacom V8
 - If retrieval returns `status == "missing_index"`, do not output any configuration example; ask user for manual path first and build index before generating commands.
 - If retrieval returns `status == "missing_index"`, `placeholder_fields` is not actionable and must not be used to synthesize commands.
 - If retrieval returns `status == "missing_device"`, do not output configuration; request `device` first.
+- In `missing_index`/`missing_device` cases: do not create any JSON plan file, do not run `validate_cli.py`.
 - For one request, output exactly one final configuration set. Never output multiple基础配置/候选方案.
 - Do not expose internal JSON unless user explicitly asks for JSON.
+
+## Stop-First Reply Templates
+- Missing device reply (only ask question, no config):
+  - `未检测到设备类型，请先提供 device（ne/ce/ae/lsw/usg）。`
+- Missing index reply (only ask path + command, no config):
+  - `当前未找到 <device> 的RAG索引，请提供手册CHM路径（或HTML/Markdown目录）以先建库。`
+  - `CHM一键建库命令：python scripts/chm_to_index.py --input <manual.chm> --device <device>`
 
 ## Input Examples
 - “帮我测试一下 ospf”
 - “帮我测试一下 ospf 的 hello 报文”
 - “我需要测试一下 ospf 协议，给我一下 usg 设备配置 ospf 的命令行”
 - “我需要测试一下 ospf 协议，给我一下 ne 设备配置 ospf 的命令行”
-- “protocol=ospf packet=hello device=ne-v8 vrp=V8”
-- “protocol=ospf device=ce-v8 vrp=V8”
-- “protocol=ospf packet=hello device=ae-v8 vrp=V8”
-- “protocol=ospf device=lsw-v8 vrp=V8”
-- “protocol=ospf packet=hello device=usg-v8 vrp=V8”
+- “protocol=ospf packet=hello device=ne vrp=V8”
+- “protocol=ospf device=ce vrp=V8”
+- “protocol=ospf packet=hello device=ae vrp=V8”
+- “protocol=ospf device=lsw vrp=V8”
+- “protocol=ospf packet=hello device=usg vrp=V8”
 
 ## Output Format (JSON)
 Required fields:
@@ -68,7 +77,7 @@ After internal JSON validation succeeds, output in this shape:
 <single config block>
 ```
 
-If `device=usg-v8` and `protocol=ospf`, prefer this canonical style:
+If `device=usg` and `protocol=ospf`, prefer this canonical style:
 ```cli
 system-view
 
@@ -93,11 +102,11 @@ security-policy
 quit
 ```
 
-For `ne-v8`/`ce-v8`/`ae-v8`/`lsw-v8`, prefer a routing-device style without `security-policy` unless retrieval evidence explicitly requires it.
+For `ne`/`ce`/`ae`/`lsw`, prefer a routing-device style without `security-policy` unless retrieval evidence explicitly requires it.
 
 ## Quick Reference
-- 检索: `python scripts/search_manual.py --input "$ARGUMENTS" --device <ne-v8|ce-v8|ae-v8|lsw-v8|usg-v8>`
-- CHM 一键建索引: `python scripts/chm_to_index.py --input ~/Downloads/HUAWEI_usg.chm --device usg-v8`
+- 检索: `python scripts/search_manual.py --input "$ARGUMENTS" --device <ne|ce|ae|lsw|usg>`
+- CHM 一键建索引: `python scripts/chm_to_index.py --input ~/Downloads/HUAWEI_usg.chm --device usg`
 - HTML 转 MD: `python scripts/html_to_md.py --input <html_dir> --out manuals/<device>/md`
 - 构建索引(从MD): `python scripts/build_index.py --manual manuals/<device>/md --out data/<device>`
 - 校验: `python scripts/validate_cli.py --input <json>`

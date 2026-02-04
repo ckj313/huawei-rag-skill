@@ -15,6 +15,12 @@ from src.bm25 import BM25Index
 from src.chunking import chunk_markdown
 from src.html_to_md import decode_html_bytes, html_to_markdown
 
+def _normalize_device(device: str) -> str:
+    value = device.strip().lower()
+    if "-v" in value and value.rsplit("-v", 1)[1].isdigit():
+        return value.rsplit("-v", 1)[0]
+    return value
+
 
 def extract_chm(input_path: Path, out_dir: Path) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -94,8 +100,8 @@ def main() -> int:
     )
     parser.add_argument(
         "--device",
-        default="usg-v8",
-        help="Device key used for output paths (default: usg-v8)",
+        default="usg",
+        help="Device key used for output paths (default: usg)",
     )
     parser.add_argument("--html-out", help="HTML output directory override")
     parser.add_argument("--md-out", help="Markdown output directory override")
@@ -107,21 +113,22 @@ def main() -> int:
     input_path = Path(args.input).expanduser().resolve()
     if not input_path.exists():
         raise SystemExit(f"CHM not found: {input_path}")
+    device = _normalize_device(args.device)
 
     html_out = (
         Path(args.html_out).expanduser().resolve()
         if args.html_out
-        else (ROOT / "manuals" / args.device / "html")
+        else (ROOT / "manuals" / device / "html")
     )
     md_out = (
         Path(args.md_out).expanduser().resolve()
         if args.md_out
-        else (ROOT / "manuals" / args.device / "md")
+        else (ROOT / "manuals" / device / "md")
     )
     index_out = (
         Path(args.index_out).expanduser().resolve()
         if args.index_out
-        else (ROOT / "data" / args.device)
+        else (ROOT / "data" / device)
     )
 
     extract_chm(input_path, html_out)

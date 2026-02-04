@@ -8,7 +8,7 @@ def test_validate_cli_missing_refs_fails():
     rules_path = Path(__file__).parent.parent / ".claude" / "skills" / "huawei-datacom-cli" / "rules" / "dangerous_commands.txt"
     plan = {
         "protocol": "ospf",
-        "device": "usg-v8",
+        "device": "usg",
         "commands": [
             {"cmd": "ospf 1", "purpose": "create process", "refs": []}
         ],

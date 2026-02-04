@@ -1,8 +1,0 @@
-device: usg-v8
-aliases:
-  - usg
-  - firewall
-  - 防火墙
-  - usg v8
-index_path: data/usg-v8
-manual_root: manuals/usg-v8

@@ -15,6 +15,29 @@ from src.bm25 import BM25Index
 from src.experience import load_protocol_profiles, detect_intent
 
 
+def _normalize_device(device: str | None) -> str | None:
+    if not device:
+        return None
+    value = device.strip().lower()
+    if "-v" in value and value.rsplit("-v", 1)[1].isdigit():
+        return value.rsplit("-v", 1)[0]
+    return value
+
+
+def _resolve_index_dir(device: str, index_override: str | None) -> Path:
+    if index_override:
+        return Path(index_override).expanduser().resolve()
+    preferred = ROOT / "data" / device
+    if preferred.exists():
+        return preferred
+
+    # Backward compatibility with legacy "<device>-v<version>" index folders.
+    for path in (ROOT / "data").glob(f"{device}-v*"):
+        if path.is_dir():
+            return path
+    return preferred
+
+
 def _load_bm25(path: Path) -> BM25Index:
     data = pickle.loads(path.read_bytes())
     return BM25Index(
@@ -34,6 +57,7 @@ def _missing_index_payload(raw_input: str, intent: dict, device: str, index_dir:
         "status": "missing_index",
         "experience_policy": "user_managed_only",
         "can_generate_config": False,
+        "must_stop": True,
         "next_action": "ask_user_for_manual_source_path",
         "message": "索引缺失，先向用户索要手册路径并完成建库，禁止直接生成配置命令。",
         "error": f"Index not found in {index_dir}",
@@ -64,8 +88,9 @@ def _missing_device_payload(raw_input: str, intent: dict) -> dict:
         "status": "missing_device",
         "experience_policy": "user_managed_only",
         "can_generate_config": False,
+        "must_stop": True,
         "next_action": "ask_user_for_device",
-        "message": "未提供设备类型，先让用户指定 device（ne-v8/ce-v8/ae-v8/lsw-v8/usg-v8）后再检索。",
+        "message": "未提供设备类型，先让用户指定 device（ne/ce/ae/lsw/usg）后再检索。",
         "input": raw_input,
         "protocol": intent.get("protocol"),
         "packet": intent.get("packet"),
@@ -75,7 +100,7 @@ def _missing_device_payload(raw_input: str, intent: dict) -> dict:
         "deferred_placeholder_fields": intent.get("placeholder_fields", []),
         "hits": [],
         "needs_user_input": [
-            "device: ne-v8 | ce-v8 | ae-v8 | lsw-v8 | usg-v8",
+            "device: ne | ce | ae | lsw | usg",
         ],
     }
 
@@ -96,10 +121,11 @@ def main() -> int:
     profiles = load_protocol_profiles(ROOT / "experience/protocols")
     intent = detect_intent(raw_input, profiles)
 
-    if not args.device:
+    normalized_device = _normalize_device(args.device)
+    if not normalized_device:
         output = _missing_device_payload(raw_input, intent)
         print(json.dumps(output, ensure_ascii=False, indent=2))
-        return 0
+        return 2
 
     queries = []
     if args.query:
@@ -110,17 +136,14 @@ def main() -> int:
         for q in profile.get("search_queries", []):
             queries.append(q)
 
-    if args.index:
-        index_dir = Path(args.index).expanduser().resolve()
-    else:
-        index_dir = ROOT / "data" / args.device
+    index_dir = _resolve_index_dir(normalized_device, args.index)
     meta_path = index_dir / "meta.json"
     bm25_path = index_dir / "bm25.pkl"
 
     if not meta_path.exists() or not bm25_path.exists():
-        output = _missing_index_payload(raw_input, intent, args.device, index_dir)
+        output = _missing_index_payload(raw_input, intent, normalized_device, index_dir)
         print(json.dumps(output, ensure_ascii=False, indent=2))
-        return 0
+        return 3
 
     meta = json.loads(meta_path.read_text(encoding="utf-8"))
     bm25 = _load_bm25(bm25_path)
@@ -147,10 +170,11 @@ def main() -> int:
         "status": "ok",
         "experience_policy": "user_managed_only",
         "can_generate_config": True,
+        "must_stop": False,
         "input": raw_input,
         "protocol": intent.get("protocol"),
         "packet": intent.get("packet"),
-        "device": args.device,
+        "device": normalized_device,
         "required_fields": intent.get("required_fields", []),
         "placeholder_fields": intent.get("placeholder_fields", []),
         "hits": hits,

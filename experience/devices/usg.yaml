@@ -1,0 +1,7 @@
+device: usg
+aliases:
+  - usg
+  - firewall
+  - 防火墙
+index_path: data/usg
+manual_root: manuals/usg
