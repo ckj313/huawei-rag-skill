@@ -11,16 +11,24 @@ Use offline manuals to derive **config-only** CLI commands for Huawei V8 devices
 ## Workflow
 1. Parse input to detect protocol/packet using `experience/protocols/*.yaml`.
 2. Parse `device` from input arguments and run retrieval: `python scripts/search_manual.py --input "$ARGUMENTS" --device <device>`.
-3. Only generate commands that are supported by retrieved snippets.
-4. For any `placeholder_fields` returned by retrieval, emit placeholders in commands using `<param>` (e.g., `<process_id>`). Do **not** add these to `missing_fields`.
-5. Output JSON that matches `.claude/skills/huawei-firewall-cli/schemas/cli_plan.schema.json`.
-6. Validate: `python scripts/validate_cli.py --input <json>`.
+3. Parse retrieval JSON:
+   - If `status == "missing_index"`: do not generate configuration yet; ask user for `manual_source_path`.
+   - After user provides path, build index by source type:
+     - CHM: `extract_chm.py -> html_to_md.py -> build_index.py`
+     - HTML dir: `html_to_md.py -> build_index.py`
+     - Markdown dir: `build_index.py`
+   - Rerun retrieval after indexing.
+4. Only generate commands that are supported by retrieved snippets when `status == "ok"`.
+5. For any `placeholder_fields` returned by retrieval, emit placeholders in commands using `<param>` (e.g., `<process_id>`). Do **not** add these to `missing_fields`.
+6. Output JSON that matches `.claude/skills/huawei-firewall-cli/schemas/cli_plan.schema.json`.
+7. Validate: `python scripts/validate_cli.py --input <json>`.
 
 ## Output Rules
 - Output **only configuration commands** (no `display`, `ping`, `diagnose`, etc.).
 - Each command must include at least one `refs[]` entry from retrieval hits.
 - Use `assumptions` only when the manual explicitly allows defaults.
 - `missing_fields` is only for truly unknown inputs (e.g., protocol/device/goal ambiguous or no evidence). It must **not** contain placeholder fields.
+- If retrieval returns `status == "missing_index"`, ask for manual path first and build index before generating any commands.
 
 ## Input Examples
 - “帮我测试一下 ospf”
@@ -71,6 +79,9 @@ Output (placeholder example):
 
 ## Quick Reference
 - 检索: `python scripts/search_manual.py --input "$ARGUMENTS" --device <ne-v8|usg-v8>`
+- CHM 解包: `python scripts/extract_chm.py --input <manual.chm> --out manuals/<device>/html`
+- HTML 转 MD: `python scripts/html_to_md.py --input <html_dir> --out manuals/<device>/md`
+- 构建索引: `python scripts/build_index.py --manual manuals/<device>/md --out data/<device>`
 - 校验: `python scripts/validate_cli.py --input <json>`
 - 经验库: `experience/protocols/*.yaml`
 - 索引: `data/<device>/meta.json` + `data/<device>/bm25.pkl`

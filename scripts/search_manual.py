@@ -26,6 +26,38 @@ def _load_bm25(path: Path) -> BM25Index:
     )
 
 
+def _missing_index_payload(raw_input: str, intent: dict, device: str, index_dir: Path) -> dict:
+    manual_root = ROOT / "manuals" / device
+    md_dir = manual_root / "md"
+    html_dir = manual_root / "html"
+    return {
+        "status": "missing_index",
+        "error": f"Index not found in {index_dir}",
+        "input": raw_input,
+        "protocol": intent.get("protocol"),
+        "packet": intent.get("packet"),
+        "device": device,
+        "required_fields": intent.get("required_fields", []),
+        "placeholder_fields": intent.get("placeholder_fields", []),
+        "hits": [],
+        "needs_user_input": [
+            "manual_source_path: 手册路径（CHM 文件、HTML 目录或 Markdown 目录）",
+        ],
+        "suggested_commands": {
+            "from_markdown": f"python scripts/build_index.py --manual <markdown_dir> --out {index_dir}",
+            "from_html": (
+                f"python scripts/html_to_md.py --input <html_dir> --out {md_dir} && "
+                f"python scripts/build_index.py --manual {md_dir} --out {index_dir}"
+            ),
+            "from_chm": (
+                f"python scripts/extract_chm.py --input <manual.chm> --out {html_dir} && "
+                f"python scripts/html_to_md.py --input {html_dir} --out {md_dir} && "
+                f"python scripts/build_index.py --manual {md_dir} --out {index_dir}"
+            ),
+        },
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Search manuals using BM25")
     parser.add_argument("--input", help="Raw user input")
@@ -59,7 +91,9 @@ def main() -> int:
     bm25_path = index_dir / "bm25.pkl"
 
     if not meta_path.exists() or not bm25_path.exists():
-        raise SystemExit(f"Index not found in {index_dir}. Run build_index.py first.")
+        output = _missing_index_payload(raw_input, intent, args.device, index_dir)
+        print(json.dumps(output, ensure_ascii=False, indent=2))
+        return 0
 
     meta = json.loads(meta_path.read_text(encoding="utf-8"))
     bm25 = _load_bm25(bm25_path)
@@ -83,6 +117,7 @@ def main() -> int:
         })
 
     output = {
+        "status": "ok",
         "input": raw_input,
         "protocol": intent.get("protocol"),
         "packet": intent.get("packet"),
