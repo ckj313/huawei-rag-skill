@@ -24,15 +24,15 @@ def _normalize_device(device: str) -> str:
 
 def extract_chm(input_path: Path, out_dir: Path) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
-    cmd = ["7z", "x", str(input_path), f"-o{out_dir}", "-y"]
+    cmd = ["extract_chmLib", str(input_path), str(out_dir)]
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, check=False)
     except FileNotFoundError as exc:
-        raise SystemExit("7z not found. Please install p7zip first.") from exc
+        raise SystemExit("extract_chmLib not found. Please install chmlib tools.") from exc
 
     if result.returncode != 0:
         details = "\n".join([result.stdout.strip(), result.stderr.strip()]).strip()
-        raise SystemExit(f"Failed to extract CHM: {details}")
+        raise SystemExit(f"Failed to extract CHM (extract_chmLib): {details}")
 
 
 def convert_html_to_md(input_root: Path, out_root: Path) -> int:

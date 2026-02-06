@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Extract CHM to HTML using 7z")
+    parser = argparse.ArgumentParser(description="Extract CHM to HTML using extract_chmLib")
     parser.add_argument("--input", required=True, help="CHM file path")
     parser.add_argument("--out", required=True, help="Output directory")
     args = parser.parse_args()
@@ -15,7 +15,7 @@ def main() -> int:
     out_dir = Path(args.out).expanduser().resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    cmd = ["7z", "x", str(input_path), f"-o{out_dir}", "-y"]
+    cmd = ["extract_chmLib", str(input_path), str(out_dir)]
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
         print(result.stdout)
