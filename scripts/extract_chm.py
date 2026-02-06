@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import argparse
-import subprocess
+import sys
 from pathlib import Path
 
 
@@ -11,16 +11,14 @@ def main() -> int:
     parser.add_argument("--out", required=True, help="Output directory")
     args = parser.parse_args()
 
+    root = Path(__file__).resolve().parent.parent
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
+    from src.chm_extract import extract_chm
+
     input_path = Path(args.input).expanduser().resolve()
     out_dir = Path(args.out).expanduser().resolve()
-    out_dir.mkdir(parents=True, exist_ok=True)
-
-    cmd = ["extract_chmLib", str(input_path), str(out_dir)]
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    if result.returncode != 0:
-        print(result.stdout)
-        print(result.stderr)
-        return result.returncode
+    extract_chm(input_path, out_dir)
     print(f"Extracted to {out_dir}")
     return 0
 

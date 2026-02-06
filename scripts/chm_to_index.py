@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import json
 import pickle
-import subprocess
 import sys
 from pathlib import Path
 
@@ -13,6 +12,7 @@ if str(ROOT) not in sys.path:
 
 from src.bm25 import BM25Index
 from src.chunking import chunk_markdown
+from src.chm_extract import extract_chm
 from src.html_to_md import decode_html_bytes, html_to_markdown
 
 def _normalize_device(device: str) -> str:
@@ -20,19 +20,6 @@ def _normalize_device(device: str) -> str:
     if "-v" in value and value.rsplit("-v", 1)[1].isdigit():
         return value.rsplit("-v", 1)[0]
     return value
-
-
-def extract_chm(input_path: Path, out_dir: Path) -> None:
-    out_dir.mkdir(parents=True, exist_ok=True)
-    cmd = ["extract_chmLib", str(input_path), str(out_dir)]
-    try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=False)
-    except FileNotFoundError as exc:
-        raise SystemExit("extract_chmLib not found. Please install chmlib tools.") from exc
-
-    if result.returncode != 0:
-        details = "\n".join([result.stdout.strip(), result.stderr.strip()]).strip()
-        raise SystemExit(f"Failed to extract CHM (extract_chmLib): {details}")
 
 
 def convert_html_to_md(input_root: Path, out_root: Path) -> int:
