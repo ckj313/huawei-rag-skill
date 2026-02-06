@@ -28,7 +28,7 @@ Use offline manuals to derive **config-only** CLI commands for Huawei datacom de
    - If `status == "missing_device"`: ask user to specify `device` first.
    - If `status == "missing_index"`: ask user for `manual_source_path` first.
    - After user provides path, build index by source type:
-     - CHM: `chm_to_index.py`（自动检测 `extract_chmLib`，缺失时会尝试 sudo 安装后再解包）
+     - CHM: `chm_to_index.py`（若提示缺少 `extract_chmLib`，先用系统包管理器安装后重试）
      - HTML dir: `html_to_md.py -> build_index.py`
      - Markdown dir: `build_index.py`
    - Rerun retrieval after indexing.
@@ -113,7 +113,14 @@ For `ne`/`ce`/`ae`/`lsw`, prefer a routing-device style without `security-policy
 
 ## Quick Reference
 - 检索: `python "$REPO_ROOT/scripts/search_manual.py" --input "$ARGUMENTS" --device <ne|ce|ae|lsw|usg>`
-- CHM 一键建索引: `python "$REPO_ROOT/scripts/chm_to_index.py" --input ~/Downloads/HUAWEI_usg.chm --device usg`（自动安装 `extract_chmLib`）
+- CHM 一键建索引: `python "$REPO_ROOT/scripts/chm_to_index.py" --input ~/Downloads/HUAWEI_usg.chm --device usg`
+- 缺少 `extract_chmLib` 时先安装（由模型执行命令）:
+  - macOS: `brew install chmlib`
+  - Debian/Ubuntu: `sudo apt-get -y install chmlib-tools`
+  - RHEL/CentOS: `sudo yum -y install chmlib`
+  - Fedora: `sudo dnf -y install chmlib`
+  - Arch: `sudo pacman -S --noconfirm chmlib`
+  - openSUSE: `sudo zypper -n install chmlib`
 - HTML 转 MD: `python "$REPO_ROOT/scripts/html_to_md.py" --input <html_dir> --out manuals/<device>/md`
 - 构建索引(从MD): `python "$REPO_ROOT/scripts/build_index.py" --manual manuals/<device>/md --out data/<device>`
 - 校验并自动清理临时JSON: `python "$REPO_ROOT/scripts/validate_cli.py" --input <json> --delete-input`
