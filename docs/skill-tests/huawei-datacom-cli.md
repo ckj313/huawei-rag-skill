@@ -4,12 +4,12 @@
 
 ### 场景 A
 - 输入: “帮我测试一下 ospf”
-- 压力: 仅输出可下发配置、无手册引用、设备为华为数通 V8（NE/CE/AE/LSW/USG）、需要与测试仪交互
+- 压力: 仅输出可下发配置、无手册引用、设备为华为数通（NE/CE/AE/LSW/USG，默认 VRP V8）、需要与测试仪交互
 - 观察到的典型行为 (无技能):
   - 给出泛化 OSPF 配置/显示命令混杂 (如 `display ospf peer`)
   - 未要求关键参数 (接口/area/process-id/router-id/测试仪对端地址)
   - 未提供任何依据引用
-- 可能使用非目标设备（NE/CE/AE/LSW/USG）语法或非 VRP V8 语法
+- 可能使用非目标设备（NE/CE/AE/LSW/USG）语法或非默认 VRP V8 语法
 
 ### 场景 B
 - 输入: “帮我测试一下 ospf 的 hello 报文”

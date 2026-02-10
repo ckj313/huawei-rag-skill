@@ -7,6 +7,7 @@ description: Use when asked to output Huawei datacom device CLI configuration (N
 
 ## Overview
 Use offline manuals to derive **config-only** CLI commands for Huawei datacom devices (for example `ne`, `ce`, `ae`, `lsw`, `usg`). Every command must be grounded in retrieved manual evidence.
+Treat VRP version as default `V8`; do not require users to provide `vrp=V8` in input.
 
 ## Hard Constraints
 - Never create, edit, or auto-complete files under `experience/`.
@@ -63,11 +64,11 @@ Use offline manuals to derive **config-only** CLI commands for Huawei datacom de
 - “帮我测试一下 ospf 的 hello 报文”
 - “我需要测试一下 ospf 协议，给我一下 usg 设备配置 ospf 的命令行”
 - “我需要测试一下 ospf 协议，给我一下 ne 设备配置 ospf 的命令行”
-- “protocol=ospf packet=hello device=ne vrp=V8”
-- “protocol=ospf device=ce vrp=V8”
-- “protocol=ospf packet=hello device=ae vrp=V8”
-- “protocol=ospf device=lsw vrp=V8”
-- “protocol=ospf packet=hello device=usg vrp=V8”
+- “protocol=ospf packet=hello device=ne”
+- “protocol=ospf device=ce”
+- “protocol=ospf packet=hello device=ae”
+- “protocol=ospf device=lsw”
+- “protocol=ospf packet=hello device=usg”
 
 ## Output Format (JSON)
 Required fields:
