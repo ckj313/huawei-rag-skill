@@ -1,0 +1,4 @@
+interface:
+  display_name: "PageIndex Retrieve"
+  short_description: "使用 VectifyAI/PageIndex 进行离线建树与检索"
+  default_prompt: "先检查 tree 是否存在；不存在则运行 pageindex_build.py；然后运行 pageindex_search.py；最后仅基于 hits 生成 evidence blocks。"
